@@ -18,11 +18,11 @@ public class WarehouseController : ControllerBase
     
 
     [HttpPost]
-    public async Task<IResult> FulfillOrder(ProductWarehouse productWarehouse)
+    public async Task<IActionResult> FulfillOrder(ProductWarehouse productWarehouse)
     {
         int ret = await _warehouseService.FulfillOrder(productWarehouse);
         //return StatusCode(StatusCodes.Status201Created);
-        return ret == -1 ? Results.NotFound() : Results.Ok();
+        return Ok("idProductWarehouse: " + ret);
     }
     
 }

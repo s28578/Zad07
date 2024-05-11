@@ -20,14 +20,16 @@ public class WarehouseRepository : IWarehouseRepository
 
         try
         {
-            
+            Console.WriteLine("Does this work?");
             com.CommandText = "SELECT COUNT(*) from Product where IdProduct = @IdProduct";
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
             int countOfProduct = (int)com.ExecuteScalar();
             
             if (countOfProduct < 1)
             {
-                return -1;
+                Console.WriteLine("Count: " + countOfProduct);
+                // return -1;
+                throw new InvalidOperationException("Order either does not exist or is already fulfilled.");
             }
 
             com.Parameters.Clear();
@@ -36,6 +38,7 @@ public class WarehouseRepository : IWarehouseRepository
             int countOfWarehouses = (int) com.ExecuteScalar();
             if (countOfWarehouses < 1)
             {
+                Console.WriteLine("Here1");
                 return -1;
             }
             
@@ -48,6 +51,8 @@ public class WarehouseRepository : IWarehouseRepository
             int countOfOrders = (int)com.ExecuteScalar();
             if (countOfOrders < 1)
             {
+                Console.WriteLine("Here2");
+
                 return -1;
             }
 
@@ -55,19 +60,26 @@ public class WarehouseRepository : IWarehouseRepository
             
             com.Parameters.Clear();
             com.CommandText =
-                "SELECT IdOrder from Order1 where IdProduct = @IdProduct AND Amount = @Amount AND CreatedAt < @CreatedAt AND FulfilledAt IS NULL";
+                "SELECT IdOrder from Order1 where IdProduct = @IdProduct AND Amount = @Amount AND CreatedAt < @CreatedAt";
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
             com.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
             com.Parameters.AddWithValue("@CreatedAt", productWarehouse.CreatedAt);
             int idOrder = (int)com.ExecuteScalar();
+            if (idOrder == 1)
+            {
+                Console.WriteLine("Here3");
+
+            }
             
             
             com.Parameters.Clear();
             com.CommandText = "SELECT COUNT(*) from Product_Warehouse where IdOrder = @IdOrder";
             com.Parameters.AddWithValue("@IdOrder", idOrder);
-            int countOfProductsWithOrder = (int)com.ExecuteScalar();
+            int countOfProductsWithOrder = (int) await com.ExecuteScalarAsync();
             if (countOfProductsWithOrder > 0)
             {
+                Console.WriteLine("Here4");
+
                 return -1;
             }
 
@@ -75,56 +87,75 @@ public class WarehouseRepository : IWarehouseRepository
             
             DateTime dateTime = DateTime.Now;
             com.Parameters.Clear();
-            com.CommandText = "UPDATE Order1 SET FulfilledAt = @DateTime";
+            com.CommandText = "UPDATE Order1 SET FulfilledAt = @DateTime where IdProduct = @IdProduct";
             com.Parameters.AddWithValue("@DateTime", dateTime);
-
+            com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+            // await com.ExecuteScalarAsync();
+            var affectedRows1 = await com.ExecuteNonQueryAsync();
+            if (affectedRows1 == 0)
+            {
+                Console.WriteLine("here4.5");
+            }
+            
             
             
             com.Parameters.Clear();
             com.CommandText =
-                "SELECT Amount from Order1 where IdProduct = @IdProduct AND Amount = @Amount AND CreatedAt < @CreatedAt AND FulfilledAt IS NULL";
+                "SELECT Amount from Order1 where IdProduct = @IdProduct AND Amount = @Amount AND CreatedAt < @CreatedAt";
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
             com.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
             com.Parameters.AddWithValue("@CreatedAt", productWarehouse.CreatedAt);
-            int amount = (int)com.ExecuteScalar();
+            int amount = (int) await com.ExecuteScalarAsync();
+            if (amount == 125)
+            {
+                Console.WriteLine("Here7");
+
+            }
             
 
             
-            com.CommandText = "SELECT Price from Product where IdProduct = @IdProduct";
-            com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
-            double price;
-            using (var dr = await com.ExecuteReaderAsync())
-            {
-                await dr.ReadAsync();
-                price = Convert.ToDouble(dr["Price"].ToString());
-            }
-            //double price = Convert.ToDouble(com.ExecuteScalar());
-            return 1;
+            
+            // com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+            
+            // var affectedRows = await com.ExecuteNonQueryAsync();
+            // if (affectedRows == 0)
+            // {
+            //     Console.WriteLine("here4.5");
+            // }
+            // double price = Convert.ToDouble(await com.ExecuteScalarAsync());
+            // Console.WriteLine("Price: " + price);
+            // return 1;
             //double price = Convert.ToDouble(pricestr);
-            return 1;
+            // return 1;
             
             com.Parameters.Clear();
             com.CommandText = "INSERT INTO Product_Warehouse(IdWarehouse, IdProduct, IdOrder,Amount, Price, CreatedAt) " +
-                              "VALUES(@IdWarehouse, @IdProduct, @IdOrder, @Amount, @Price, @CreatedAt)";
+                              "VALUES(@IdWarehouse, @IdProduct, @IdOrder, @Amount," +
+                              " (select price * amount from product JOIN Order1  ON product.IdProduct = Order1.IdProduct WHERE IdOrder = @IdOrder), @CreatedAt);SELECT SCOPE_IDENTITY();";
             com.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
             com.Parameters.AddWithValue("@IdOrder", idOrder);
             com.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
-            com.Parameters.AddWithValue("@Price", String.Format("{0:0.00}", amount*price));
             com.Parameters.AddWithValue("@CreatedAt", productWarehouse.CreatedAt);
+            //com.ExecuteScalar();
+            var affectedRows2 = await com.ExecuteNonQueryAsync();
+            if (affectedRows2 > 0)
+            {
+                Console.WriteLine("here8");
+            }
             
             com.Parameters.Clear();
             com.CommandText = "SELECT IdProductWarehouse FROM Product_Warehouse WHERE " +
                               "IdWarehouse = @IdWarehouse AND IdProduct = @IdProduct AND IdOrder = @IdOrder AND " +
-                              "Amount = @Amount AND Price = @Price AND ";
+                              "Amount = @Amount AND Price = (select price * amount from product JOIN Order1  ON product.IdProduct = Order1.IdProduct WHERE IdOrder = @IdOrder) AND CreatedAt = @CreatedAt";
             com.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
             com.Parameters.AddWithValue("@IdOrder", idOrder);
             com.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
-            com.Parameters.AddWithValue("@Price", String.Format("{0:0.00}", amount*price));
             com.Parameters.AddWithValue("@CreatedAt", productWarehouse.CreatedAt);
-            int idProductWarehouse = (int)com.ExecuteScalar();
-
+            int idProductWarehouse = (int) await com.ExecuteScalarAsync();
+            Console.WriteLine("idProductWarehouse: " + idProductWarehouse);
+        
             await tran.CommitAsync();
             return idProductWarehouse;
 
@@ -132,12 +163,16 @@ public class WarehouseRepository : IWarehouseRepository
         }
         catch (SqlException exc)
         {
+            Console.WriteLine("Here9");
             await tran.RollbackAsync();
         }
-        catch (Exception exc)
-        {
-            await tran.RollbackAsync();
-        }
+        // catch (Exception exc)
+        // {
+        //     
+        //     Console.WriteLine("Here10");
+        //
+        //     await tran.RollbackAsync();
+        // }
 
         return -1;
 
