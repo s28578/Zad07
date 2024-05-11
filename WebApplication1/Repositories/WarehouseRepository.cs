@@ -9,6 +9,14 @@ public class WarehouseRepository : IWarehouseRepository
 {
     public async Task<int> FulfillOrder(ProductWarehouse productWarehouse)
     {
+        //GDZIE UZYWAMY AWAIT
+        //PRZED: 
+        //1 -> sqlConnection 
+        //2 -> sqlConnection.OpenAsync()
+        //3 -> SqlCommand
+        //4 -> sqlCommand.ExecuteReaderAsync()
+        //5 -> sqlDataReader.ReadAsync()
+        //6 -> każda metoda async
         using SqlConnection con =
             new SqlConnection("Server=db-mssql;Database=2019SBD;Integrated Security=True;TrustServerCertificate=True");
         using SqlCommand com = new SqlCommand();
