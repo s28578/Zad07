@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
 using WebApplication1.Services;
@@ -22,7 +23,19 @@ public class WarehouseController : ControllerBase
     {
         int ret = await _warehouseService.FulfillOrder(productWarehouse);
         //return StatusCode(StatusCodes.Status201Created);
+        // return StatusCode((int)HttpStatusCode.OK, "data");
+        // return Created("uri", "data");
+        // return ValidationProblem("message");
         return Ok("idProductWarehouse: " + ret);
+        // return Forbid("message");
+        // return Challenge();
+        // return Accepted("data or message");
+        // return Unauthorized("message");
+        // return NotFound("Message");
+        // return BadRequest("Error description");
+        //return Ok(ret);
+
+
     }
     
 }

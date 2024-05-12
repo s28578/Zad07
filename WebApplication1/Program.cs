@@ -6,6 +6,8 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        // Remember to install the necessary NuGetpackage (System.Data.SqlClient or Microsoft.Data.SqlClient ) 
+       
         var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

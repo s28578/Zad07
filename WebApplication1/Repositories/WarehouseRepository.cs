@@ -17,7 +17,7 @@ public class WarehouseRepository : IWarehouseRepository
         //4 -> sqlCommand.ExecuteReaderAsync()
         //5 -> sqlDataReader.ReadAsync()
         //6 -> każda metoda async
-        using SqlConnection con =
+        using  SqlConnection con =
             new SqlConnection("Server=db-mssql;Database=2019SBD;Integrated Security=True;TrustServerCertificate=True");
         using SqlCommand com = new SqlCommand();
         com.Connection = con;
@@ -31,7 +31,7 @@ public class WarehouseRepository : IWarehouseRepository
             Console.WriteLine("Does this work?");
             com.CommandText = "SELECT COUNT(*) from Product where IdProduct = @IdProduct";
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
-            int countOfProduct = (int)com.ExecuteScalar();
+            int countOfProduct = (int) await com.ExecuteScalarAsync();
             
             if (countOfProduct < 1)
             {
@@ -43,7 +43,7 @@ public class WarehouseRepository : IWarehouseRepository
             com.Parameters.Clear();
             com.CommandText = "SELECT COUNT(*) from Warehouse where IdWarehouse = @IdWarehouse";
             com.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
-            int countOfWarehouses = (int) com.ExecuteScalar();
+            int countOfWarehouses = (int) await com.ExecuteScalarAsync();
             if (countOfWarehouses < 1)
             {
                 Console.WriteLine("Here1");
@@ -56,7 +56,7 @@ public class WarehouseRepository : IWarehouseRepository
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
             com.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
             com.Parameters.AddWithValue("@CreatedAt", productWarehouse.CreatedAt);
-            int countOfOrders = (int)com.ExecuteScalar();
+            int countOfOrders = (int) await com.ExecuteScalarAsync();
             if (countOfOrders < 1)
             {
                 Console.WriteLine("Here2");
@@ -72,7 +72,7 @@ public class WarehouseRepository : IWarehouseRepository
             com.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
             com.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
             com.Parameters.AddWithValue("@CreatedAt", productWarehouse.CreatedAt);
-            int idOrder = (int)com.ExecuteScalar();
+            int idOrder = (int)await com.ExecuteScalarAsync();
             if (idOrder == 1)
             {
                 Console.WriteLine("Here3");
